@@ -22,6 +22,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 }) => {
   const boardRef = useRef<HTMLDivElement>(null);
   const [svgPath, setSvgPath] = useState<string>('');
+  const [touchPath, setTouchPath] = useState<string>('');
 
   const getCellCenter = (row: number, col: number) => {
     if (!boardRef.current) return { x: 0, y: 0 };
@@ -55,22 +56,70 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const handleTouchEnd = () => {
     if (isDrawing) {
       onEndDrawing();
+      setTouchPath('');
     }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDrawing || !boardRef.current) return;
+    
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const rect = boardRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    
+    const cellSize = rect.width / 6;
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+    
+    if (row >= 0 && row < 6 && col >= 0 && col < 6) {
+      const fruit = grid[row][col];
+      if (fruit) {
+        onSelectFruit(fruit);
+      }
+    }
+    
+    const points = selectedFruits.map(fruit => getCellCenter(fruit.row, fruit.col));
+    if (points.length > 0) {
+      const lastPoint = points[points.length - 1];
+      const currentPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      const extendedPath = `${currentPath} L ${x} ${y}`;
+      setTouchPath(extendedPath);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
   };
 
   return (
     <div
       ref={boardRef}
-      className="relative bg-white/90 rounded-3xl p-4 shadow-2xl backdrop-blur-sm"
+      className="relative bg-white/90 rounded-3xl p-3 md:p-4 shadow-2xl backdrop-blur-sm touch-none"
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+      onTouchStart={handleTouchStart}
     >
       <svg
         className="absolute inset-0 pointer-events-none z-20"
-        style={{ padding: '1rem' }}
+        style={{ padding: '0.75rem' }}
       >
-        {svgPath && (
+        {touchPath && (
+          <path
+            d={touchPath}
+            fill="none"
+            stroke="#FF9800"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.8"
+          />
+        )}
+        {svgPath && !touchPath && (
           <path
             d={svgPath}
             fill="none"
@@ -83,14 +132,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         )}
       </svg>
 
-      <div className="grid grid-cols-6 gap-2 aspect-square">
+      <div className="grid grid-cols-6 gap-1.5 md:gap-2 aspect-square">
         {grid.map((row, rowIndex) =>
           row.map((fruit, colIndex) => (
-            <div key={fruit?.id || `${rowIndex}-${colIndex}`} className="relative">
+            <div key={fruit?.id || `${rowIndex}-${colIndex}`} className="relative aspect-square">
               <div className={`
-                absolute inset-1 rounded-2xl
+                absolute inset-1 rounded-xl md:rounded-2xl
                 ${fruit && isSelected(fruit) ? 'bg-gradient-to-br from-orange-200 to-yellow-200 shadow-inner' : 'bg-gradient-to-br from-gray-100 to-gray-200'}
-                transition-all duration-200
+                transition-all duration-150
               `} />
               <FruitCell
                 fruit={fruit}
@@ -106,3 +155,4 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     </div>
   );
 };
+
