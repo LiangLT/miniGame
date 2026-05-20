@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Fruit, FruitType, GameState } from '../types/game';
 
 const FRUIT_TYPES: FruitType[] = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
@@ -76,11 +76,16 @@ export const useGame = () => {
     setGameState(prev => {
       if (prev.selectedFruits.length >= 3) {
         const newGrid = prev.grid.map(row => [...row]);
-        prev.selectedFruits.forEach(fruit => {
-          if (newGrid[fruit.row][fruit.col]) {
-            newGrid[fruit.row][fruit.col]!.isMatched = true;
+        const matchedIds = new Set(prev.selectedFruits.map(f => f.id));
+
+        // Mark fruits as matched
+        for (let row = 0; row < GRID_SIZE; row++) {
+          for (let col = 0; col < GRID_SIZE; col++) {
+            if (newGrid[row][col] && matchedIds.has(newGrid[row][col]!.id)) {
+              newGrid[row][col]!.isMatched = true;
+            }
           }
-        });
+        }
 
         const points = prev.selectedFruits.length * 10 * (1 + prev.combo * 0.5);
         const newScore = prev.score + Math.floor(points);
@@ -88,6 +93,44 @@ export const useGame = () => {
         const newHighScore = Math.max(newScore, prev.highScore);
 
         localStorage.setItem('fruitSliceHighScore', newHighScore.toString());
+
+        // Remove matched fruits and make others fall
+        setTimeout(() => {
+          setGameState(p => {
+            const clearedGrid = p.grid.map(row => [...row]);
+
+            // Remove matched fruits
+            for (let row = 0; row < GRID_SIZE; row++) {
+              for (let col = 0; col < GRID_SIZE; col++) {
+                if (clearedGrid[row][col]?.isMatched) {
+                  clearedGrid[row][col] = null;
+                }
+              }
+            }
+
+            // Make fruits fall
+            for (let col = 0; col < GRID_SIZE; col++) {
+              let emptyRow = GRID_SIZE - 1;
+              for (let row = GRID_SIZE - 1; row >= 0; row--) {
+                if (clearedGrid[row][col] !== null) {
+                  if (row !== emptyRow) {
+                    clearedGrid[emptyRow][col] = clearedGrid[row][col];
+                    clearedGrid[emptyRow][col]!.row = emptyRow;
+                    clearedGrid[row][col] = null;
+                  }
+                  emptyRow--;
+                }
+              }
+
+              // Add new fruits
+              for (let row = emptyRow; row >= 0; row--) {
+                clearedGrid[row][col] = generateRandomFruit(row, col);
+              }
+            }
+
+            return { ...p, grid: clearedGrid };
+          });
+        }, 300);
 
         return {
           ...prev,
@@ -109,64 +152,6 @@ export const useGame = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setGameState(prev => {
-        if (prev.selectedFruits.length > 0 || prev.gameOver) return prev;
-
-        const newGrid = prev.grid.map(row => [...row]);
-        let hasMatches = false;
-
-        for (let row = 0; row < GRID_SIZE; row++) {
-          for (let col = 0; col < GRID_SIZE; col++) {
-            if (newGrid[row][col]?.isMatched) {
-              newGrid[row][col] = null;
-              hasMatches = true;
-            }
-          }
-        }
-
-        if (!hasMatches) return prev;
-
-        for (let col = 0; col < GRID_SIZE; col++) {
-          let emptyRow = GRID_SIZE - 1;
-          for (let row = GRID_SIZE - 1; row >= 0; row--) {
-            if (newGrid[row][col] !== null) {
-              if (row !== emptyRow) {
-                newGrid[emptyRow][col] = newGrid[row][col];
-                newGrid[emptyRow][col]!.row = emptyRow;
-                newGrid[row][col] = null;
-              }
-              emptyRow--;
-            }
-          }
-
-          for (let row = emptyRow; row >= 0; row--) {
-            newGrid[row][col] = generateRandomFruit(row, col);
-            newGrid[row][col]!.isFalling = true;
-          }
-        }
-
-        return { ...prev, grid: newGrid };
-      });
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [gameState.selectedFruits, gameState.gameOver]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setGameState(prev => {
-        const newGrid = prev.grid.map(row =>
-          row.map(cell => cell ? { ...cell, isFalling: false } : null)
-        );
-        return { ...prev, grid: newGrid };
-      });
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [gameState.grid]);
-
   const restartGame = useCallback(() => {
     setGameState({
       grid: initializeGrid(),
@@ -187,3 +172,4 @@ export const useGame = () => {
     restartGame,
   };
 };
+

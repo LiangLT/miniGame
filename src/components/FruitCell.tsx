@@ -24,11 +24,10 @@ export const FruitCell: React.FC<FruitCellProps> = ({
   return (
     <div
       className={`
-        w-full h-full flex items-center justify-center text-4xl
+        w-full h-full flex items-center justify-center text-5xl
         cursor-pointer select-none transition-all duration-200
         ${isSelected ? 'scale-110 z-10' : 'hover:scale-105'}
         ${fruit.isMatched ? 'opacity-0 scale-0' : ''}
-        ${fruit.isFalling ? 'animate-fall' : ''}
       `}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
@@ -38,3 +37,4 @@ export const FruitCell: React.FC<FruitCellProps> = ({
     </div>
   );
 };
+
