@@ -1,57 +1,88 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🍉 Fruit Slice - 水果切片游戏
 
-Currently, two official plugins are available:
+一款将消消乐和切西瓜玩法结合的休闲小游戏！
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎮 游戏玩法
 
-## Expanding the ESLint configuration
+1. **划线消除**: 用鼠标或手指划过 3 个或更多相同的水果来消除它们
+2. **连击加分**: 连续消除会获得 combo 加成，分数更高！
+3. **水果掉落**: 消除后上方的水果会下落，新水果会从顶部补充
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ 技术栈
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **前端框架**: React 18 + TypeScript
+- **构建工具**: Vite 6
+- **样式框架**: Tailwind CSS 3
+- **状态管理**: React Hooks
+
+## 📦 安装与运行
+
+### 前置条件
+
+- Node.js >= 18.x
+- npm >= 9.x
+
+### 安装依赖
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 启动开发服务器
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm run dev
 ```
+
+启动后访问: http://localhost:5173/
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+构建产物会输出到 `dist/` 目录
+
+### 预览生产版本
+
+```bash
+npm run preview
+```
+
+## 📁 项目结构
+
+```
+src/
+├── components/           # React 组件
+│   ├── FruitCell.tsx    # 水果单元格组件
+│   ├── GameBoard.tsx    # 游戏面板组件
+│   ├── GameOverScreen.tsx # 游戏结束界面
+│   └── ScorePanel.tsx   # 分数显示组件
+├── hooks/               # 自定义 Hooks
+│   └── useGame.ts       # 游戏核心逻辑
+├── pages/               # 页面文件
+│   └── Home.tsx         # 游戏主页面
+├── types/               # TypeScript 类型定义
+│   └── game.ts          # 游戏相关类型
+├── App.tsx              # 应用入口组件
+├── main.tsx             # 应用入口文件
+└── index.css            # 全局样式
+```
+
+## 🎯 游戏特性
+
+- ✨ 流畅的划线连接效果
+- 📈 实时分数和最高分记录
+- 🔥 连击倍增系统
+- 📱 支持鼠标和触摸操作
+- 🎨 精美渐变背景和动画效果
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+MIT License
