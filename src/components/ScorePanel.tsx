@@ -25,25 +25,25 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
     <div className="mb-3 md:mb-6 space-y-2">
       <div className="flex justify-between items-center gap-1">
         <div className="bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-lg flex-1 min-w-0">
-          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">Level</div>
+          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">关卡</div>
           <div className="text-xl md:text-2xl font-bold text-green-600">{level}</div>
         </div>
 
         <div className="bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-lg flex-1 min-w-0">
-          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">Score</div>
+          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">分数</div>
           <div className="text-xl md:text-2xl font-bold text-green-600">{score}</div>
         </div>
 
         <div className={`${timeBg} backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-lg flex-1 min-w-0`}>
-          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">Time</div>
-          <div className={`text-xl md:text-2xl font-bold ${timeColor}`}>{timeRemaining}s</div>
+          <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">时间</div>
+          <div className={`text-xl md:text-2xl font-bold ${timeColor}`}>{timeRemaining}秒</div>
         </div>
       </div>
 
       <div className="bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-4 py-2 shadow-lg">
         <div className="flex justify-between items-center mb-1">
           <span className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">
-            Target: {targetScore}
+            目标: {targetScore}
           </span>
           <span className="text-[10px] md:text-xs text-green-600 font-bold">
             {score}/{targetScore}
@@ -59,7 +59,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
       {combo > 0 && (
         <div className="bg-gradient-to-r from-orange-400 to-yellow-400 rounded-xl md:rounded-2xl px-3 md:px-4 py-2 shadow-lg animate-bounce text-center">
-          <div className="text-[10px] md:text-xs text-white font-bold uppercase tracking-wider">Combo</div>
+          <div className="text-[10px] md:text-xs text-white font-bold uppercase tracking-wider">连击</div>
           <div className="text-xl md:text-2xl font-bold text-white">x{combo}</div>
         </div>
       )}

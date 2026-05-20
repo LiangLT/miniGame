@@ -27,10 +27,10 @@ export default function Home() {
 
       <div className="relative z-10 w-full max-w-lg">
         <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-white text-center mb-1 md:mb-2 drop-shadow-lg">
-          🍉 Fruit Slice 🍉
+          🍉 切切乐 🍉
         </h1>
         <p className="text-white/70 text-center mb-3 md:mb-6 text-xs sm:text-sm md:text-lg">
-          Connect 3+ fruits to slice them!
+          连接3个以上相同的水果！
         </p>
 
         <ScorePanel
@@ -54,7 +54,7 @@ export default function Home() {
         </div>
 
         <div className="mt-3 md:mt-6 text-center text-white/70 text-xs md:text-sm">
-          <p>💡 Tip: Connect more fruits for higher scores!</p>
+          <p>💡 提示：连接更多水果可以获得更高分数！</p>
         </div>
       </div>
 
