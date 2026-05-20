@@ -1,23 +1,41 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Fruit, FruitType, GameState } from '../types/game';
 
-const FRUIT_TYPES: FruitType[] = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
+const ALL_FRUIT_TYPES: FruitType[] = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
 const GRID_SIZE = 6;
 
-const generateRandomFruit = (row: number, col: number): Fruit => ({
+const getLevelConfig = (level: number) => {
+  const baseTarget = 100;
+  const targetIncrease = level * 50;
+  const targetScore = baseTarget + targetIncrease;
+  
+  const baseTime = 60;
+  const timeDecrease = Math.min(level * 3, 30);
+  const timeLimit = Math.max(baseTime - timeDecrease, 30);
+  
+  const fruitTypes = Math.min(3 + Math.floor(level / 2), 8);
+  
+  return {
+    level,
+    targetScore,
+    timeLimit,
+    fruitTypes,
+  };
+};
+
+const generateRandomFruit = (row: number, col: number, availableTypes: FruitType[]): Fruit => ({
   id: `${row}-${col}-${Date.now()}-${Math.random()}`,
-  type: FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)],
+  type: availableTypes[Math.floor(Math.random() * availableTypes.length)],
   row,
   col,
 });
 
-const initializeGrid = (): (Fruit | null)[][] => {
+const initializeGrid = (availableTypes: FruitType[]): (Fruit | null)[][] => {
   const grid: (Fruit | null)[][] = [];
   for (let row = 0; row < GRID_SIZE; row++) {
     grid[row] = [];
     for (let col = 0; col < GRID_SIZE; col++) {
-      grid[row][col] = generateRandomFruit(row, col);
+      grid[row][col] = generateRandomFruit(row, col, availableTypes);
     }
   }
   return grid;
@@ -25,14 +43,76 @@ const initializeGrid = (): (Fruit | null)[][] => {
 
 export const useGame = () => {
   const [gameState, setGameState] = useState<GameState>({
-    grid: initializeGrid(),
+    grid: [],
     score: 0,
     highScore: parseInt(localStorage.getItem('fruitSliceHighScore') || '0'),
     isDrawing: false,
     selectedFruits: [],
     gameOver: false,
     combo: 0,
+    level: 1,
+    targetScore: 100,
+    timeRemaining: 60,
+    levelComplete: false,
   });
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const initializedRef = useRef(false);
+
+  const initializeLevel = useCallback((level: number) => {
+    const config = getLevelConfig(level);
+    const availableTypes = ALL_FRUIT_TYPES.slice(0, config.fruitTypes);
+    
+    setGameState(prev => ({
+      ...prev,
+      grid: initializeGrid(availableTypes),
+      score: prev.score,
+      isDrawing: false,
+      selectedFruits: [],
+      gameOver: false,
+      combo: 0,
+      level: config.level,
+      targetScore: config.targetScore,
+      timeRemaining: config.timeLimit,
+      levelComplete: false,
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      initializeLevel(1);
+    }
+  }, [initializeLevel]);
+
+  useEffect(() => {
+    if (!gameState.gameOver && !gameState.levelComplete && gameState.timeRemaining > 0) {
+      timerRef.current = setInterval(() => {
+        setGameState(prev => {
+          if (prev.timeRemaining <= 1) {
+            clearInterval(timerRef.current!);
+            return { ...prev, timeRemaining: 0, gameOver: true };
+          }
+          return { ...prev, timeRemaining: prev.timeRemaining - 1 };
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [gameState.gameOver, gameState.levelComplete, gameState.timeRemaining]);
+
+  useEffect(() => {
+    if (gameState.score >= gameState.targetScore && !gameState.levelComplete) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      setGameState(prev => ({ ...prev, levelComplete: true }));
+    }
+  }, [gameState.score, gameState.targetScore, gameState.levelComplete]);
 
   const isAdjacent = (fruit1: Fruit, fruit2: Fruit): boolean => {
     const rowDiff = Math.abs(fruit1.row - fruit2.row);
@@ -42,7 +122,7 @@ export const useGame = () => {
 
   const selectFruit = useCallback((fruit: Fruit) => {
     setGameState(prev => {
-      if (!prev.isDrawing) return prev;
+      if (!prev.isDrawing || prev.gameOver || prev.levelComplete) return prev;
 
       const lastSelected = prev.selectedFruits[prev.selectedFruits.length - 1];
 
@@ -65,20 +145,26 @@ export const useGame = () => {
   }, []);
 
   const startDrawing = useCallback((fruit: Fruit) => {
-    setGameState(prev => ({
-      ...prev,
-      isDrawing: true,
-      selectedFruits: [fruit],
-    }));
+    setGameState(prev => {
+      if (prev.gameOver || prev.levelComplete) return prev;
+      return {
+        ...prev,
+        isDrawing: true,
+        selectedFruits: [fruit],
+      };
+    });
   }, []);
 
   const endDrawing = useCallback(() => {
     setGameState(prev => {
+      if (prev.gameOver || prev.levelComplete) {
+        return { ...prev, isDrawing: false, selectedFruits: [] };
+      }
+
       if (prev.selectedFruits.length >= 3) {
         const newGrid = prev.grid.map(row => [...row]);
         const matchedIds = new Set(prev.selectedFruits.map(f => f.id));
 
-        // Mark fruits as matched
         for (let row = 0; row < GRID_SIZE; row++) {
           for (let col = 0; col < GRID_SIZE; col++) {
             if (newGrid[row][col] && matchedIds.has(newGrid[row][col]!.id)) {
@@ -94,12 +180,12 @@ export const useGame = () => {
 
         localStorage.setItem('fruitSliceHighScore', newHighScore.toString());
 
-        // Remove matched fruits and make others fall
         setTimeout(() => {
           setGameState(p => {
             const clearedGrid = p.grid.map(row => [...row]);
+            const config = getLevelConfig(p.level);
+            const availableTypes = ALL_FRUIT_TYPES.slice(0, config.fruitTypes);
 
-            // Remove matched fruits
             for (let row = 0; row < GRID_SIZE; row++) {
               for (let col = 0; col < GRID_SIZE; col++) {
                 if (clearedGrid[row][col]?.isMatched) {
@@ -108,7 +194,6 @@ export const useGame = () => {
               }
             }
 
-            // Make fruits fall
             for (let col = 0; col < GRID_SIZE; col++) {
               let emptyRow = GRID_SIZE - 1;
               for (let row = GRID_SIZE - 1; row >= 0; row--) {
@@ -122,9 +207,8 @@ export const useGame = () => {
                 }
               }
 
-              // Add new fruits
               for (let row = emptyRow; row >= 0; row--) {
-                clearedGrid[row][col] = generateRandomFruit(row, col);
+                clearedGrid[row][col] = generateRandomFruit(row, col, availableTypes);
               }
             }
 
@@ -152,17 +236,33 @@ export const useGame = () => {
     });
   }, []);
 
+  const nextLevel = useCallback(() => {
+    const nextLevelNum = gameState.level + 1;
+    initializeLevel(nextLevelNum);
+  }, [gameState.level, initializeLevel]);
+
   const restartGame = useCallback(() => {
-    setGameState({
-      grid: initializeGrid(),
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setGameState(prev => ({
+      ...prev,
       score: 0,
-      highScore: gameState.highScore,
       isDrawing: false,
       selectedFruits: [],
       gameOver: false,
       combo: 0,
-    });
-  }, [gameState.highScore]);
+      levelComplete: false,
+    }));
+    initializeLevel(1);
+  }, [initializeLevel]);
+
+  const restartLevel = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    initializeLevel(gameState.level);
+  }, [gameState.level, initializeLevel]);
 
   return {
     gameState,
@@ -170,6 +270,7 @@ export const useGame = () => {
     startDrawing,
     endDrawing,
     restartGame,
+    nextLevel,
+    restartLevel,
   };
 };
-

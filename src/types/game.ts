@@ -10,6 +10,13 @@ export interface Fruit {
   isFalling?: boolean;
 }
 
+export interface Level {
+  level: number;
+  targetScore: number;
+  timeLimit: number;
+  fruitTypes: number;
+}
+
 export interface GameState {
   grid: (Fruit | null)[][];
   score: number;
@@ -18,4 +25,8 @@ export interface GameState {
   selectedFruits: Fruit[];
   gameOver: boolean;
   combo: number;
+  level: number;
+  targetScore: number;
+  timeRemaining: number;
+  levelComplete: boolean;
 }

@@ -1,12 +1,20 @@
-
 import React from 'react';
 import { useGame } from '../hooks/useGame';
 import { GameBoard } from '../components/GameBoard';
 import { ScorePanel } from '../components/ScorePanel';
 import { GameOverScreen } from '../components/GameOverScreen';
+import { LevelCompleteScreen } from '../components/LevelCompleteScreen';
 
 export default function Home() {
-  const { gameState, selectFruit, startDrawing, endDrawing, restartGame } = useGame();
+  const {
+    gameState,
+    selectFruit,
+    startDrawing,
+    endDrawing,
+    restartGame,
+    nextLevel,
+    restartLevel,
+  } = useGame();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 flex flex-col items-center justify-center p-2 md:p-4">
@@ -29,6 +37,9 @@ export default function Home() {
           score={gameState.score}
           highScore={gameState.highScore}
           combo={gameState.combo}
+          level={gameState.level}
+          targetScore={gameState.targetScore}
+          timeRemaining={gameState.timeRemaining}
         />
 
         <div className="w-full" style={{ maxWidth: '400px', margin: '0 auto' }}>
@@ -51,10 +62,20 @@ export default function Home() {
         <GameOverScreen
           score={gameState.score}
           highScore={gameState.highScore}
+          level={gameState.level}
           onRestart={restartGame}
+          onReplay={restartLevel}
+        />
+      )}
+
+      {gameState.levelComplete && (
+        <LevelCompleteScreen
+          level={gameState.level}
+          score={gameState.score}
+          onNextLevel={nextLevel}
+          onRestart={restartLevel}
         />
       )}
     </div>
   );
 }
-
