@@ -24,16 +24,28 @@ export const FruitCell: React.FC<FruitCellProps> = ({
   return (
     <div
       className={`
-        w-full h-full flex items-center justify-center text-5xl
-        cursor-pointer select-none transition-all duration-200
-        ${isSelected ? 'scale-110 z-10' : 'hover:scale-105'}
+        w-full h-full flex items-center justify-center
+        cursor-pointer select-none touch-none
+        transition-all duration-100 ease-out
+        ${isSelected ? 'scale-110 z-10' : 'hover:scale-105 active:scale-95'}
         ${fruit.isMatched ? 'opacity-0 scale-0' : ''}
       `}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onTouchStart={onTouchStart}
     >
-      <span className={`${isSelected ? 'drop-shadow-lg' : ''}`}>{fruit.type}</span>
+      <span
+        className={`
+          text-3xl sm:text-4xl md:text-5xl lg:text-6xl
+          ${isSelected ? 'drop-shadow-lg animate-bounce' : ''}
+          select-none
+        `}
+        style={{
+          filter: isSelected ? 'drop-shadow(0 4px 8px rgba(255, 152, 0, 0.6))' : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
+        }}
+      >
+        {fruit.type}
+      </span>
     </div>
   );
 };
