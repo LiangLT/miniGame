@@ -8,22 +8,13 @@ interface TileBoardProps {
 
 export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps) {
   const getTileStyle = (tile: Tile) => {
-    const baseSize = 48;
-    const layerOffset = 4;
-    const horizontalOffset = tile.layer * layerOffset;
-    const verticalOffset = tile.layer * layerOffset;
-    
-    const centerX = (GRID_SIZE - 1) / 2;
-    const offsetX = (tile.col - centerX) * baseSize;
-    const offsetY = (tile.row - centerX) * baseSize;
-    
-    const x = offsetX + horizontalOffset;
-    const y = offsetY + verticalOffset;
+    const layerOffset = 3;
     
     return {
-      left: `calc(50% + ${x}px)`,
-      top: `calc(50% + ${y}px)`,
-      zIndex: tile.layer * 10 + tile.row,
+      left: `calc(50% + ${tile.col * 2}px)`,
+      top: `calc(50% + ${tile.row * 2}px)`,
+      zIndex: tile.layer * 100 + tile.row * 10 + tile.col,
+      transform: `translate(-50%, -50%) translate(${tile.layer * layerOffset}px, ${tile.layer * layerOffset}px)`,
     };
   };
 
