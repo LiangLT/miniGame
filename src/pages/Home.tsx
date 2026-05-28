@@ -61,7 +61,6 @@ export default function Home() {
           tiles={gameState.tiles}
           removingTiles={removingTiles}
           onTileClick={clickTile}
-          selectedFlippedTileId={gameState.selectedFlippedTileId}
         />
 
         <div className="my-4 md:my-6">
