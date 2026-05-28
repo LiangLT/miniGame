@@ -23,6 +23,7 @@ export interface GameSnapshot {
   slots: (Tile | null)[];
   removedTiles: Tile[];
   score: number;
+  selectedFlippedTileId: string | null;
 }
 
 export interface SheepGameState {
@@ -40,6 +41,7 @@ export interface SheepGameState {
   };
   history: GameSnapshot[];
   matchedTiles: string[];
+  selectedFlippedTileId: string | null;
 }
 
 export const SLOT_COUNT = 7;

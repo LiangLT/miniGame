@@ -4,9 +4,10 @@ interface TileBoardProps {
   tiles: Tile[][];
   removingTiles: string[];
   onTileClick: (tile: Tile) => void;
+  selectedFlippedTileId: string | null;
 }
 
-export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps) {
+export function TileBoard({ tiles, removingTiles, onTileClick, selectedFlippedTileId }: TileBoardProps) {
   const getTileStyle = (tile: Tile) => {
     const tileSize = 36;
     const gap = 4;
@@ -38,13 +39,15 @@ export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps)
       <div className="absolute inset-0 flex items-center justify-center">
         {visibleTiles.map(tile => {
           const isRemoving = removingTiles.includes(tile.id);
+          const isSelected = selectedFlippedTileId === tile.id;
+          const isDisabled = tile.isCovered || tile.isRemoved || (selectedFlippedTileId && selectedFlippedTileId !== tile.id && !tile.isFlipped);
           const style = getTileStyle(tile);
           
           return (
             <button
               key={tile.id}
-              onClick={() => !tile.isCovered && !tile.isRemoved && onTileClick(tile)}
-              disabled={tile.isCovered || tile.isRemoved}
+              onClick={() => !isDisabled && onTileClick(tile)}
+              disabled={isDisabled}
               className={`
                 absolute -translate-x-1/2 -translate-y-1/2
                 w-8 h-8 md:w-9 md:h-9
@@ -55,15 +58,23 @@ export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps)
                 select-none
                 ${tile.isCovered 
                   ? 'opacity-30 cursor-not-allowed grayscale' 
-                  : 'cursor-pointer hover:scale-105 hover:shadow-lg hover:z-[9999]'
+                  : (isDisabled && !isSelected
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'cursor-pointer hover:scale-105 hover:shadow-lg hover:z-[9999]'
+                    )
                 }
                 ${isRemoving ? 'animate-ping opacity-0' : ''}
                 ${tile.isFlipped ? 'flipped' : ''}
+                ${isSelected ? 'ring-4 ring-yellow-400 scale-110 shadow-xl z-[9999]' : ''}
               `}
               style={{
                 ...style,
-                backgroundColor: tile.isCovered ? '#6b7280' : (tile.isFlipped ? '#ffffff' : '#3b82f6'),
-                border: `2px solid ${tile.isCovered ? '#4b5563' : '#2563eb'}`,
+                backgroundColor: tile.isCovered 
+                  ? '#6b7280' 
+                  : (tile.isFlipped 
+                      ? (isSelected ? '#fef3c7' : '#ffffff')
+                      : '#3b82f6'),
+                border: `2px solid ${tile.isCovered ? '#4b5563' : (tile.isFlipped ? (isSelected ? '#f59e0b' : '#d1d5db') : '#2563eb')}`,
               }}
             >
               <span className={`tile-content ${tile.isFlipped ? 'show' : 'hide'}`}>

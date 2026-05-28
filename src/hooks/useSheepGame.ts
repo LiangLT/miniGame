@@ -88,6 +88,7 @@ const getSnapshot = (state: SheepGameState): GameSnapshot => ({
   slots: [...state.slots],
   removedTiles: state.removedTiles.map(tile => ({ ...tile })),
   score: state.score,
+  selectedFlippedTileId: state.selectedFlippedTileId,
 });
 
 const getInitialState = (level: number): SheepGameState => {
@@ -109,6 +110,7 @@ const getInitialState = (level: number): SheepGameState => {
     },
     history: [],
     matchedTiles: [],
+    selectedFlippedTileId: null,
   };
 };
 
@@ -185,8 +187,16 @@ export const useSheepGame = () => {
     if (gameState.gameOver || gameState.victory) return;
     if (tile.isCovered || tile.isRemoved) return;
     
+    // 如果已经有翻开的牌，但点击的不是那张牌，则不能点击
+    if (gameState.selectedFlippedTileId && gameState.selectedFlippedTileId !== tile.id) {
+      return;
+    }
+    
     // 如果牌没有翻开，先翻牌
     if (!tile.isFlipped) {
+      // 确保此时没有其他翻开的牌
+      if (gameState.selectedFlippedTileId) return;
+      
       setGameState(prev => {
         const newLayers = prev.tiles.map(layer => 
           layer.map(t => t.id === tile.id ? { ...t, isFlipped: true } : t)
@@ -194,6 +204,7 @@ export const useSheepGame = () => {
         return {
           ...prev,
           tiles: newLayers,
+          selectedFlippedTileId: tile.id,
         };
       });
       return;
@@ -253,6 +264,7 @@ export const useSheepGame = () => {
           victory,
           history: newHistory,
           matchedTiles: matchResult.matched.map(t => t.id),
+          selectedFlippedTileId: null,
         };
       }
       
@@ -267,9 +279,10 @@ export const useSheepGame = () => {
         victory: false,
         history: newHistory,
         matchedTiles: [],
+        selectedFlippedTileId: null,
       };
     });
-  }, [gameState.gameOver, gameState.victory, gameState.slots, checkMatches, checkGameOver, checkVictory]);
+  }, [gameState.gameOver, gameState.victory, gameState.slots, gameState.selectedFlippedTileId, checkMatches, checkGameOver, checkVictory]);
 
   const clickSlotTile = useCallback((slotIndex: number) => {
     if (gameState.gameOver || gameState.victory) return;
@@ -355,6 +368,7 @@ export const useSheepGame = () => {
         slots: newSlots,
         props: { ...prev.props, remove: prev.props.remove - 1 },
         history: [...prev.history, snapshot],
+        selectedFlippedTileId: null,
       };
     });
   }, [gameState.props.remove, gameState.gameOver, gameState.victory]);
@@ -375,6 +389,7 @@ export const useSheepGame = () => {
         props: { ...prev.props, undo: prev.props.undo - 1 },
         history: prev.history.slice(0, -1),
         matchedTiles: [],
+        selectedFlippedTileId: lastSnapshot.selectedFlippedTileId,
       };
     });
   }, [gameState.props.undo, gameState.gameOver, gameState.victory, gameState.history]);
@@ -425,6 +440,7 @@ export const useSheepGame = () => {
         tiles: finalLayers,
         props: { ...prev.props, shuffle: prev.props.shuffle - 1 },
         history: [...prev.history, snapshot],
+        selectedFlippedTileId: null,
       };
     });
   }, [gameState.props.shuffle, gameState.gameOver, gameState.victory]);
