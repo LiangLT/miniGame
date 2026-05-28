@@ -54,9 +54,7 @@ const initializeTiles = (level: number): Tile[][] => {
 };
 
 const updateCoveredStatus = (layers: Tile[][]): Tile[][] => {
-  const coveredPositions = new Set<string>();
-  
-  for (let layer = LAYER_COUNT - 1; layer >= 0; layer--) {
+  for (let layer = 0; layer < LAYER_COUNT; layer++) {
     const currentLayer = layers[layer];
     const newLayer: Tile[] = [];
     
@@ -67,14 +65,15 @@ const updateCoveredStatus = (layers: Tile[][]): Tile[][] => {
       }
       
       let isCovered = false;
+      // 检查上面一层是否有相同位置的牌
       if (layer < LAYER_COUNT - 1) {
-        const posKey = `${tile.row}-${tile.col}`;
-        if (coveredPositions.has(posKey)) {
+        const upperLayer = layers[layer + 1];
+        const upperTile = upperLayer?.find(t => t.row === tile.row && t.col === tile.col);
+        if (upperTile && !upperTile.isRemoved) {
           isCovered = true;
         }
       }
       
-      coveredPositions.add(`${tile.row}-${tile.col}`);
       newLayer.push({ ...tile, isCovered });
     }
     
