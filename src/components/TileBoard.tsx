@@ -8,13 +8,17 @@ interface TileBoardProps {
 
 export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps) {
   const getTileStyle = (tile: Tile) => {
-    const layerOffset = 3;
+    const tileSize = 36;
+    const gap = 4;
+    const totalSize = tileSize + gap;
+    
+    const x = (tile.col - (GRID_SIZE - 1) / 2) * totalSize;
+    const y = (tile.row - (GRID_SIZE - 1) / 2) * totalSize;
     
     return {
-      left: `calc(50% + ${tile.col * 2}px)`,
-      top: `calc(50% + ${tile.row * 2}px)`,
-      zIndex: tile.layer * 100 + tile.row * 10 + tile.col,
-      transform: `translate(-50%, -50%) translate(${tile.layer * layerOffset}px, ${tile.layer * layerOffset}px)`,
+      left: `calc(50% + ${x}px)`,
+      top: `calc(50% + ${y}px)`,
+      zIndex: tile.layer * 1000 + tile.row * 10 + tile.col,
     };
   };
 
@@ -30,13 +34,8 @@ export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps)
   }
 
   return (
-    <div className="relative w-full max-w-xs mx-auto aspect-square">
-      <div 
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          background: 'radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%)',
-        }}
-      >
+    <div className="relative w-full h-96 md:h-[500px] mx-auto">
+      <div className="absolute inset-0 flex items-center justify-center">
         {visibleTiles.map(tile => {
           const isRemoving = removingTiles.includes(tile.id);
           const style = getTileStyle(tile);
@@ -48,29 +47,43 @@ export function TileBoard({ tiles, removingTiles, onTileClick }: TileBoardProps)
               disabled={tile.isCovered || tile.isRemoved}
               className={`
                 absolute -translate-x-1/2 -translate-y-1/2
-                w-10 h-10 md:w-12 md:h-12
-                flex items-center justify-center text-2xl md:text-3xl
+                w-8 h-8 md:w-9 md:h-9
+                flex items-center justify-center text-xl md:text-2xl
                 rounded-lg
-                transition-all duration-200
+                transition-all duration-300
                 shadow-md
                 select-none
                 ${tile.isCovered 
-                  ? 'opacity-40 cursor-not-allowed grayscale' 
-                  : 'cursor-pointer hover:scale-110 hover:shadow-lg hover:z-50'
+                  ? 'opacity-30 cursor-not-allowed grayscale' 
+                  : 'cursor-pointer hover:scale-105 hover:shadow-lg hover:z-[9999]'
                 }
                 ${isRemoving ? 'animate-ping opacity-0' : ''}
+                ${tile.isFlipped ? 'flipped' : ''}
               `}
               style={{
                 ...style,
-                backgroundColor: tile.isCovered ? '#9ca3af' : '#fff',
-                border: `2px solid ${tile.isCovered ? '#6b7280' : '#e5e7eb'}`,
+                backgroundColor: tile.isCovered ? '#6b7280' : (tile.isFlipped ? '#ffffff' : '#3b82f6'),
+                border: `2px solid ${tile.isCovered ? '#4b5563' : '#2563eb'}`,
               }}
             >
-              {tile.type}
+              <span className={`tile-content ${tile.isFlipped ? 'show' : 'hide'}`}>
+                {tile.isFlipped ? tile.type : ''}
+              </span>
             </button>
           );
         })}
       </div>
+      <style>{`
+        .tile-content {
+          transition: opacity 0.3s ease;
+        }
+        .tile-content.hide {
+          opacity: 0;
+        }
+        .tile-content.show {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }

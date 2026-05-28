@@ -43,6 +43,7 @@ const initializeTiles = (level: number): Tile[][] => {
           col,
           isCovered: false,
           isRemoved: false,
+          isFlipped: false,
         });
       }
     }
@@ -185,6 +186,21 @@ export const useSheepGame = () => {
     if (gameState.gameOver || gameState.victory) return;
     if (tile.isCovered || tile.isRemoved) return;
     
+    // 如果牌没有翻开，先翻牌
+    if (!tile.isFlipped) {
+      setGameState(prev => {
+        const newLayers = prev.tiles.map(layer => 
+          layer.map(t => t.id === tile.id ? { ...t, isFlipped: true } : t)
+        );
+        return {
+          ...prev,
+          tiles: newLayers,
+        };
+      });
+      return;
+    }
+    
+    // 牌已翻开，放入槽位
     const emptySlotIndex = gameState.slots.findIndex(s => s === null);
     if (emptySlotIndex === -1) return;
     

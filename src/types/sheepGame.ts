@@ -10,6 +10,7 @@ export interface Tile {
   col: number;
   isCovered: boolean;
   isRemoved: boolean;
+  isFlipped: boolean;
 }
 
 export interface Slot {
@@ -43,4 +44,4 @@ export interface SheepGameState {
 
 export const SLOT_COUNT = 7;
 export const LAYER_COUNT = 3;
-export const GRID_SIZE = 5;
+export const GRID_SIZE = 10;
